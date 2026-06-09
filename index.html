@@ -1102,6 +1102,84 @@ button{
   from{left:-50%}
   to{left:150%}
 }
+
+.history-panel{
+  margin:18px auto 20px;
+  padding:16px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#110608,#210b10);
+  border:1px solid rgba(255,215,122,.45);
+  box-shadow:0 0 22px rgba(255,43,43,.2);
+  color:white;
+  display:none;
+}
+
+.history-panel h2{
+  margin:0 0 12px;
+  color:#ffd77a;
+}
+
+.history-list{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+
+.history-card{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:16px;
+  padding:12px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.history-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 0 18px rgba(255,215,122,.25);
+}
+
+.history-top3{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin-top:8px;
+}
+
+.history-mini{
+  width:30%;
+  text-align:center;
+  font-size:11px;
+}
+
+.history-mini img{
+  width:100%;
+  height:72px;
+  object-fit:cover;
+  border-radius:10px;
+  background:#222;
+}
+
+.history-medals{
+  margin-top:10px;
+  font-size:12px;
+  color:#ddd;
+  line-height:1.5;
+}
+
+.music-btn{
+  margin-top:12px;
+}
+
+@media(max-width:700px){
+  .history-list{
+    grid-template-columns:1fr;
+  }
+
+  .history-mini img{
+    height:62px;
+  }
+}
   
 </style>
 </head>
@@ -1112,6 +1190,17 @@ button{
   <div class="box">
     <h1>🎭 Oshi Sorter</h1>
     <p class="sub">Pilih member yang lebih kamu suka. Klik untuk memilih. Bisa skip atau ulangi dari awal.</p>
+    
+    <button class="music-btn" id="musicBtn" onclick="toggleBGM()">🎵 BGM ON</button>
+
+<div id="historyPanel" class="history-panel">
+  <h2>📜 Riwayat Oshi Sorter</h2>
+  <div id="historyList" class="history-list"></div>
+</div>
+
+<audio id="bgm"></audio>
+  <source src="bgm.mp3" type="audio/mpeg">
+</audio>
 
     <div id="game">
       <div class="progress-area">
@@ -1219,6 +1308,7 @@ const members = [
 ];
 
 let scores = {};
+let stats = {};
 let pairs = [];
 let current = 0;
 let totalBattle = 450;
@@ -1253,8 +1343,15 @@ function generateBalancedPairs(total){
   return result.sort(() => Math.random() - 0.5);
 }
   
-members.forEach(m => scores[m.name] = 0);
+members.forEach(m=>{
+  scores[m.name] = 0;
 
+  stats[m.name] = {
+    battle:0,
+    win:0
+  };
+});
+  
 pairs = generateBalancedPairs(totalBattle);
 
 function fallback(img,name){
@@ -1320,6 +1417,30 @@ function choose(side){
     showResult();
     return;
   }
+
+  let pair = pairs[current];
+  let left = pair[0];
+  let right = pair[1];
+
+  stats[left.name].battle++;
+  stats[right.name].battle++;
+
+  if(side === "left"){
+    scores[left.name]++;
+    stats[left.name].win++;
+  }else{
+    scores[right.name]++;
+    stats[right.name].win++;
+  }
+
+  current++;
+
+  if(current >= pairs.length){
+    showResult();
+  }else{
+    showPair();
+  }
+}
 
   let pair = pairs[current];
 
@@ -1391,6 +1512,9 @@ function showResult(){
   let top2 = sorted[1];
   let top3 = sorted[2];
 
+  saveSorterHistory(sorted);
+  renderHistory();
+
   let shareText = "🏆 Hasil Oshi Sorter Theater48Fight\n\n";
   shareText += "Oshi Utama: " + top1.name + "\n\n";
   shareText += "Top 10:\n";
@@ -1452,12 +1576,19 @@ function showResult(){
   html += '<h2>📋 Rangking Lengkap</h2>';
   html += '<div class="rank-list">';
 
-  sorted.forEach((member,index)=>{
-    html += '<div class="rank">';
-    html += '<img src="' + member.img + '" onerror="fallback(this,\'' + member.name + '\')">';
-    html += '<div><b>#' + (index+1) + '</b> ' + member.name + '<br><small>' + scores[member.name] + ' poin</small></div>';
-    html += '</div>';
-  });
+ sorted.forEach((member,index)=>{
+  let battleCount = stats[member.name].battle;
+  let winCount = stats[member.name].win;
+  let wr = battleCount ? ((winCount / battleCount) * 100).toFixed(1) : "0.0";
+
+  html += '<div class="rank">';
+  html += '<img loading="lazy" src="' + member.img + '" onerror="fallback(this,\'' + member.name + '\')">';
+  html += '<div>';
+  html += '<b>#' + (index+1) + '</b> ' + member.name + '<br>';
+  html += '<small>' + scores[member.name] + ' poin • WR ' + wr + '% • ' + winCount + '/' + battleCount + ' battle</small>';
+  html += '</div>';
+  html += '</div>';
+});
 
   html += '</div>';
 
@@ -1531,6 +1662,82 @@ document.addEventListener("keydown",function(e){
   if(e.key.toLowerCase() === "s")skip();
 });
 
+  const bgmPlaylist = [
+  "bgm/bgm1.mp3",
+  "bgm/bgm2.mp3",
+  "bgm/bgm3.mp3",
+  "bgm/bgm4.mp3",
+  "bgm/bgm5.mp3",
+  "bgm/bgm6.mp3",
+  "bgm/bgm7.mp3",
+  "bgm/bgm8.mp3",
+  "bgm/bgm9.mp3",
+  "bgm/bgm10.mp3",
+  "bgm/bgm11.mp3"
+];
+
+let bgmIndex = Number(localStorage.getItem("t48_bgm_index") || 0);
+let bgmPlaying = false;
+
+function loadBGM(){
+  const bgm = document.getElementById("bgm");
+  bgm.src = bgmPlaylist[bgmIndex];
+  bgm.volume = 0.35;
+}
+
+function playBGM(){
+  const bgm = document.getElementById("bgm");
+  const btn = document.getElementById("musicBtn");
+
+  if(!bgm.src){
+    loadBGM();
+  }
+
+  bgm.play();
+  bgmPlaying = true;
+  btn.innerText = "🔇 BGM OFF";
+}
+
+function pauseBGM(){
+  const bgm = document.getElementById("bgm");
+  const btn = document.getElementById("musicBtn");
+
+  bgm.pause();
+  bgmPlaying = false;
+  btn.innerText = "🎵 BGM ON";
+}
+
+function nextBGM(){
+  const bgm = document.getElementById("bgm");
+
+  bgmIndex++;
+
+  if(bgmIndex >= bgmPlaylist.length){
+    bgmIndex = 0;
+  }
+
+  localStorage.setItem("t48_bgm_index", bgmIndex);
+
+  bgm.src = bgmPlaylist[bgmIndex];
+  bgm.volume = 0.35;
+
+  if(bgmPlaying){
+    bgm.play();
+  }
+}
+
+function toggleBGM(){
+  if(bgmPlaying){
+    pauseBGM();
+  }else{
+    playBGM();
+  }
+}
+
+document.getElementById("bgm").addEventListener("ended", nextBGM);
+loadBGM();
+
+renderHistory();
 showPair();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
