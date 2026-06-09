@@ -1308,43 +1308,22 @@ button{
   }
 }
 
+/* FIX BOX BIAR NGGAK ADA KOSONG BAWAH */
 @media(min-width:701px){
   body{
-    padding:0 8px !important;
+    padding:4px 12px !important;
   }
 
   .box{
-    padding:8px 18px 10px !important;
-  }
-
-  .battle{
-    margin-top:10px !important;
+    min-height:calc(100vh - 8px) !important;
   }
 
   .member-card{
-    width:220px !important;
-    padding:8px !important;
+    width:270px !important;
   }
 
   .member-card img{
-    height:220px !important;
-  }
-
-  .member-name{
-    font-size:20px !important;
-    margin-top:5px !important;
-  }
-
-  .member-tag{
-    margin-top:2px !important;
-  }
-
-  .action-row{
-    margin-top:8px !important;
-  }
-
-  .tip{
-    margin:4px 0 0 !important;
+    height:285px !important;
   }
 }
   
