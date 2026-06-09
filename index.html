@@ -1643,6 +1643,144 @@ document.addEventListener("keydown",function(e){
   if(e.key.toLowerCase() === "s")skip();
 });
 
+  function getSorterHistory(){
+  return JSON.parse(localStorage.getItem("t48_sorter_history") || "[]");
+}
+
+function saveSorterHistory(sorted){
+  let history = getSorterHistory();
+
+  const data = {
+    id: Date.now(),
+    date: new Date().toLocaleString("id-ID"),
+    totalBattle: pairs.length,
+    top3: sorted.slice(0,3).map((m,index)=>({
+      rank:index+1,
+      name:m.name,
+      img:m.img,
+      score:scores[m.name],
+      battle:stats[m.name].battle,
+      win:stats[m.name].win
+    })),
+    full: sorted.map((m,index)=>({
+      rank:index+1,
+      name:m.name,
+      img:m.img,
+      score:scores[m.name],
+      battle:stats[m.name].battle,
+      win:stats[m.name].win
+    }))
+  };
+
+  history.unshift(data);
+  history = history.slice(0,10);
+
+  localStorage.setItem("t48_sorter_history", JSON.stringify(history));
+}
+
+function getMedalSummary(){
+  const history = getSorterHistory();
+  const medals = {};
+
+  history.forEach(item=>{
+    item.top3.forEach(t=>{
+      if(!medals[t.name]){
+        medals[t.name] = {gold:0,silver:0,bronze:0};
+      }
+
+      if(t.rank === 1) medals[t.name].gold++;
+      if(t.rank === 2) medals[t.name].silver++;
+      if(t.rank === 3) medals[t.name].bronze++;
+    });
+  });
+
+  return medals;
+}
+
+function renderHistory(){
+  const history = getSorterHistory();
+  const panel = document.getElementById("historyPanel");
+  const list = document.getElementById("historyList");
+
+  if(!history.length){
+    panel.style.display = "none";
+    return;
+  }
+
+  const medals = getMedalSummary();
+
+  panel.style.display = "block";
+  list.innerHTML = "";
+
+  history.forEach(item=>{
+    let top3Html = item.top3.map(t=>{
+      const icon = t.rank === 1 ? "🥇" : t.rank === 2 ? "🥈" : "🥉";
+      return `
+        <div class="history-mini">
+          <img src="${t.img}" onerror="fallback(this,'${t.name}')">
+          <div>${icon} ${t.name}</div>
+        </div>
+      `;
+    }).join("");
+
+    let medalText = item.top3.map(t=>{
+      const m = medals[t.name];
+      return `${t.name}: 🥇${m.gold} 🥈${m.silver} 🥉${m.bronze}`;
+    }).join("<br>");
+
+    const card = document.createElement("div");
+    card.className = "history-card";
+    card.innerHTML = `
+      <b>Sorter ${item.date}</b><br>
+      <small>${item.totalBattle} battle</small>
+      <div class="history-top3">${top3Html}</div>
+      <div class="history-medals">${medalText}</div>
+      <small>Klik untuk lihat full ranking</small>
+    `;
+
+    card.onclick = ()=>showHistoryDetail(item.id);
+    list.appendChild(card);
+  });
+}
+
+function showHistoryDetail(id){
+  const item = getSorterHistory().find(h=>h.id === id);
+  if(!item) return;
+
+  document.getElementById("game").style.display = "none";
+
+  let html = "";
+
+  html += '<div class="main-oshi">';
+  html += '<h2>📜 Riwayat Sorter</h2>';
+  html += '<h1>' + item.top3[0].name + '</h1>';
+  html += '<p>Hasil lama • ' + item.date + '</p>';
+  html += '<small>Total Battle: ' + item.totalBattle + '</small>';
+  html += '</div>';
+
+  html += '<h2>📋 Full Ranking Riwayat</h2>';
+  html += '<div class="rank-list">';
+
+  item.full.forEach(member=>{
+    let wr = member.battle ? ((member.win / member.battle) * 100).toFixed(1) : "0.0";
+
+    html += '<div class="rank">';
+    html += '<img loading="lazy" src="' + member.img + '" onerror="fallback(this,\'' + member.name + '\')">';
+    html += '<div><b>#' + member.rank + '</b> ' + member.name + '<br>';
+    html += '<small>' + member.score + ' poin • WR ' + wr + '% • ' + member.win + '/' + member.battle + ' battle</small></div>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+  html += '<div class="share-box"><button onclick="location.reload()">⬅️ Kembali</button></div>';
+
+  const result = document.getElementById("result");
+  result.innerHTML = html;
+  result.style.display = "block";
+
+  window.scrollTo({top:result.offsetTop - 10,behavior:"smooth"});
+}
+  
   const bgmPlaylist = [
   "bgm/bgm1.mp3",
   "bgm/bgm2.mp3",
