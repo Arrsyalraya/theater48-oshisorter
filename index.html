@@ -236,6 +236,65 @@ button{
 
 .result h2{text-align:center}
 
+.win-animate{
+  animation:winPop .8s ease forwards;
+}
+
+@keyframes winPop{
+  0%{transform:scale(.8);opacity:0}
+  60%{transform:scale(1.08);opacity:1}
+  100%{transform:scale(1);opacity:1}
+}
+
+.winner-glow{
+  animation:winnerGlow 1.8s infinite alternate;
+}
+
+@keyframes winnerGlow{
+  from{text-shadow:0 0 10px #ffd700}
+  to{text-shadow:0 0 25px #ffd700,0 0 45px #ff2b2b}
+}
+
+.confetti-piece{
+  position:fixed;
+  top:-20px;
+  width:8px;
+  height:14px;
+  background:#ffd700;
+  z-index:99999;
+  animation:confettiFall 2.8s linear forwards;
+}
+
+@keyframes confettiFall{
+  to{
+    transform:translateY(110vh) rotate(720deg);
+    opacity:0;
+  }
+}
+
+.flash-win{
+  position:fixed;
+  inset:0;
+  background:rgba(255,215,0,.25);
+  z-index:99998;
+  pointer-events:none;
+  animation:flashWin .7s ease forwards;
+}
+
+@keyframes flashWin{
+  from{opacity:1}
+  to{opacity:0}
+}
+
+.float-winner{
+  animation:floatWinner 2.2s ease-in-out infinite;
+}
+
+@keyframes floatWinner{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+}
+  
 .main-oshi{
   text-align:center;
   background:linear-gradient(135deg,#12070a,#2b0c10);
@@ -256,6 +315,11 @@ button{
 
 .main-oshi p{color:var(--gold);font-weight:bold}
 
+.capture-mode{
+  background:#f7f7f7 !important;
+  padding:20px !important;
+}
+  
 .podium{
   display:flex;
   justify-content:center;
@@ -379,6 +443,46 @@ button{
 
 .rank b{color:var(--deep)}
 
+.tier-guide{
+  margin:22px 0 28px;
+  padding:18px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#14070a,#250b12);
+  color:white;
+  border:1px solid rgba(255,215,122,.5);
+  box-shadow:0 0 22px rgba(255,43,43,.22);
+}
+
+.tier-guide h2{
+  margin-top:0;
+  color:#ffd77a;
+  text-align:center;
+}
+
+.tier-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+.tier-item{
+  padding:12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.tier-item b{
+  color:#ffd77a;
+}
+
+.tier-note{
+  margin-top:12px;
+  color:#ddd;
+  font-size:13px;
+  text-align:center;
+}
+ 
 .share-box{
   display:flex;
   justify-content:center;
@@ -487,7 +591,16 @@ button{
 
   .first{transform:scale(1.03)}
   .second,.third{margin-bottom:9px}
+  
+  .tier-grid{
+    grid-template-columns:1fr;
+  }
 
+  .tier-guide{
+    padding:14px;
+  }
+}
+  
   .rank-list{
     grid-template-columns:1fr;
   }
@@ -1108,17 +1221,41 @@ const members = [
 let scores = {};
 let pairs = [];
 let current = 0;
-let totalBattle = 200;
+let totalBattle = 450;
 
+function generateBalancedPairs(total){
+  let result = [];
+  let appearCount = {};
+  members.forEach(m => appearCount[m.name] = 0);
+
+  let allPairs = [];
+
+  for(let i=0;i<members.length;i++){
+    for(let j=i+1;j<members.length;j++){
+      allPairs.push([members[i],members[j]]);
+    }
+  }
+
+  while(result.length < total && allPairs.length > 0){
+    allPairs.sort((a,b)=>{
+      let scoreA = appearCount[a[0].name] + appearCount[a[1].name];
+      let scoreB = appearCount[b[0].name] + appearCount[b[1].name];
+      return scoreA - scoreB || Math.random() - 0.5;
+    });
+
+    let pair = allPairs.shift();
+
+    result.push(pair);
+    appearCount[pair[0].name]++;
+    appearCount[pair[1].name]++;
+  }
+
+  return result.sort(() => Math.random() - 0.5);
+}
+  
 members.forEach(m => scores[m.name] = 0);
 
-for(let i=0;i<members.length;i++){
-  for(let j=i+1;j<members.length;j++){
-    pairs.push([members[i],members[j]]);
-  }
-}
-
-pairs = pairs.sort(() => Math.random() - 0.5).slice(0,totalBattle);
+pairs = generateBalancedPairs(totalBattle);
 
 function fallback(img,name){
   img.onerror = null;
@@ -1132,6 +1269,29 @@ function updateProgress(){
   document.getElementById("percent").innerText = percent + "%";
 }
 
+function preloadImage(src){
+  const img = new Image();
+  img.src = src;
+}
+
+function preloadNextPair(){
+  const next = pairs[current + 1];
+  if(!next) return;
+
+  preloadImage(next[0].img);
+  preloadImage(next[1].img);
+}
+
+function preloadUpcomingPairs(amount = 3){
+  for(let i = 1; i <= amount; i++){
+    const next = pairs[current + i];
+    if(!next) continue;
+
+    preloadImage(next[0].img);
+    preloadImage(next[1].img);
+  }
+}
+  
 function showPair(){
   if(current >= pairs.length){
     showResult();
@@ -1150,6 +1310,9 @@ function showPair(){
   document.getElementById("rightImg").onerror = function(){fallback(this,right.name)};
 
   updateProgress();
+
+  preloadNextPair();
+  preloadUpcomingPairs(3);
 }
 
 function choose(side){
@@ -1186,13 +1349,37 @@ function skip(){
 }
 
 function getTier(score){
-  if(score>=20)return "TITLE: OSHI KANDUNG 😈";
-  if(score>=15)return "TITLE: OSHI SATU SATUNYA 🥶";
-  if(score>=10)return "TITLE: OSHI KESAYANGAN 🥰";
-  if(score>=5)return "TITLE: OSHI BARU 🫣";
-  return "TITLE: OSHI SALAH SATUNYA 😹";
+  if(score>=20)return "GELAR: OSHI KANDUNG 😈";
+  if(score>=15)return "GELAR: OSHI SATU-SATUNYA 🥶";
+  if(score>=10)return "GELAR: OSHI KESAYANGAN 🥰";
+  if(score>=5)return "GELAR: OSHI BARU 🫣";
+  return "GELAR: OSHI KARBIT 😹";
 }
 
+function victoryAnimation(){
+  const main = document.querySelector(".main-oshi");
+  const winnerName = document.querySelector(".main-oshi h1");
+
+  if(main) main.classList.add("win-animate","float-winner");
+  if(winnerName) winnerName.classList.add("winner-glow");
+
+  const flash = document.createElement("div");
+  flash.className = "flash-win";
+  document.body.appendChild(flash);
+  setTimeout(()=>flash.remove(),800);
+
+  for(let i=0;i<80;i++){
+    const confetti = document.createElement("div");
+    confetti.className = "confetti-piece";
+    confetti.style.left = Math.random()*100 + "vw";
+    confetti.style.animationDelay = Math.random()*1.2 + "s";
+    confetti.style.background = ["#ffd700","#ff2b2b","#59d8ff","#ff9b4a","#ff5bbd"][Math.floor(Math.random()*5)];
+    document.body.appendChild(confetti);
+
+    setTimeout(()=>confetti.remove(),3500);
+  }
+}
+  
 function showResult(){
   document.getElementById("game").style.display = "none";
 
@@ -1221,6 +1408,20 @@ function showResult(){
   html += '<h1>' + top1.name + '</h1>';
   html += '<p>' + getTier(scores[top1.name]) + '</p>';
   html += '<small>Total Battle: ' + pairs.length + ' • Member: ' + members.length + '</small>';
+  html += '</div>';
+
+  html += '<div class="tier-guide">';
+  html += '<h2>📌 Panduan Gelar & Poin</h2>';
+  html += '<div class="tier-grid">';
+
+  html += '<div class="tier-item"><b>20+ poin</b><br>GELAR: OSHI KANDUNG 😈</div>';
+  html += '<div class="tier-item"><b>15–19 poin</b><br>GELAR: OSHI SATU-SATUNYA 🥶</div>';
+  html += '<div class="tier-item"><b>10–14 poin</b><br>GELAR: OSHI KESAYANGAN 🥰</div>';
+  html += '<div class="tier-item"><b>5–9 poin</b><br>GELAR: OSHI BARU 🫣</div>';
+  html += '<div class="tier-item"><b>0–4 poin</b><br>GELAR: OSHI KARBIT 😹</div>';
+
+  html += '</div>';
+  html += '<p class="tier-note">Catatan: semakin banyak total battle, hasil ranking dan gelar makin akurat.</p>';
   html += '</div>';
 
   html += '<h2>🥇 Podium Top 3</h2>';
@@ -1262,6 +1463,7 @@ function showResult(){
 
   html += '<div class="share-box">';
   html += '<button onclick="shareNative()">📤 Share</button>';
+  html += '<button onclick="exportResultImage()">🖼️ Simpan Gambar</button>';
   html += '<button onclick="shareWhatsApp()">🟢 WhatsApp</button>';
   html += '<button onclick="shareX()">⚫ X</button>';
   html += '<button onclick="copyResult()">📋 Copy</button>';
@@ -1271,6 +1473,7 @@ function showResult(){
   let result = document.getElementById("result");
   result.innerHTML = html;
   result.style.display = "block";
+  victoryAnimation();
 
   window.scrollTo({top:result.offsetTop - 10,behavior:"smooth"});
 }
@@ -1301,6 +1504,25 @@ function copyResult(){
   .catch(()=>alert(window.__shareText));
 }
 
+function exportResultImage(){
+  const result = document.getElementById("result");
+
+  result.classList.add("capture-mode");
+
+  html2canvas(result,{
+    scale:2,
+    useCORS:true,
+    backgroundColor:"#f7f7f7"
+  }).then(canvas=>{
+    result.classList.remove("capture-mode");
+
+    const link = document.createElement("a");
+    link.download = "hasil-oshi-sorter-theater48fight.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+}
+  
 document.addEventListener("keydown",function(e){
   if(document.getElementById("game").style.display === "none")return;
 
@@ -1311,6 +1533,6 @@ document.addEventListener("keydown",function(e){
 
 showPair();
 </script>
-
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </body>
 </html>
