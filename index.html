@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theater48Fight Oshi Sorter</title>
+
+<style>
+*{box-sizing:border-box}
+:root{--red:#ff2b2b;--deep:#8b1d2c;--gold:#ffd77a}
+
+body{
+  margin:0;
+  min-height:100vh;
+  padding:16px;
+  color:white;
+  font-family:Arial,sans-serif;
+  text-align:center;
+  background:
+    radial-gradient(circle at 15% 10%,rgba(255,43,43,.25),transparent 25%),
+    radial-gradient(circle at 85% 15%,rgba(255,215,122,.16),transparent 22%),
+    linear-gradient(135deg,#050505,#17070a 48%,#050505);
+  overflow-x:hidden;
+}
+
+.wrap{width:100%;max-width:980px;margin:auto}
+
+.box{
+  background:rgba(10,10,10,.92);
+  border:1px solid rgba(255,43,43,.45);
+  border-radius:24px;
+  padding:22px;
+  box-shadow:0 0 35px rgba(255,43,43,.18);
+}
+
+h1{margin:0;font-size:38px;color:var(--gold);text-shadow:0 0 18px rgba(255,215,122,.45)}
+.sub{color:#ccc;margin:10px auto 16px;max-width:680px;font-size:14px;line-height:1.5}
+
+.progress-area{max-width:620px;margin:16px auto 0}
+.progress-text{display:flex;justify-content:space-between;color:var(--gold);font-weight:bold;font-size:13px;margin-bottom:8px}
+.progress-wrap{height:16px;background:#111;border:1px solid #333;border-radius:20px;overflow:hidden}
+.progress-bar{width:0%;height:100%;background:linear-gradient(90deg,#ff2b2b,#ffd77a);transition:.25s}
+
+.progress-fill{
+  position:relative;
+  overflow:hidden;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ff2b2b,
+      #ff8a00,
+      #ffd700,
+      #ff8a00,
+      #ff2b2b
+    );
+
+  background-size:300% 100%;
+
+  animation:
+    battleGradient 2s linear infinite;
+
+  box-shadow:
+    0 0 10px #ff2b2b,
+    0 0 20px #ff8a00,
+    0 0 35px #ffd700;
+}
+
+@keyframes battleGradient{
+  0%{
+    background-position:0% 50%;
+  }
+  100%{
+    background-position:300% 50%;
+  }
+}
+
+.progress-fill::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-50%;
+
+  width:40%;
+  height:100%;
+
+  background:
+    linear-gradient(
+      120deg,
+      transparent,
+      rgba(255,255,255,.9),
+      transparent
+    );
+
+  animation:
+    progressSlash 1.8s linear infinite;
+}
+
+@keyframes progressSlash{
+  from{
+    left:-50%;
+  }
+  to{
+    left:150%;
+  }
+}
+
+.progress-container{
+  box-shadow:
+    0 0 15px rgba(255,43,43,.5),
+    0 0 30px rgba(255,215,0,.3);
+}
+  
+.battle{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:22px;
+  margin-top:24px;
+}
+
+.member-card{
+  width:275px;
+  background:
+    url("images/card-bg.jpg");
+  background-size:cover;
+  background-position:center;
+  border:2px solid rgba(255,255,255,.25);
+  border-radius:26px;
+  padding:14px;
+  cursor:pointer;
+  transition:.25s;
+  position:relative;
+  overflow:hidden;
+
+  box-shadow:
+    0 0 18px rgba(255,43,43,.5),
+    0 0 40px rgba(255,43,43,.25);
+}
+
+.member-card::before{
+  content:"";
+  position:absolute;
+  top:-50%;
+  left:-120%;
+  width:60%;
+  height:220%;
+  background:
+  linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,.45),
+    transparent
+  );
+
+  transform:rotate(20deg);
+  animation:cardShine 4s infinite;
+}
+
+@keyframes cardShine{
+  0%{
+    left:-120%;
+  }
+  50%{
+    left:160%;
+  }
+  100%{
+    left:160%;
+  }
+}
+
+.member-card:hover{
+  transform:translateY(-5px) scale(1.02);
+}
+
+.member-card img{
+  width:100%;
+  height:310px;
+  object-fit:cover;
+  border-radius:16px;
+  background:#222;
+  border:2px solid var(--red);
+}
+
+.member-name{
+  margin-top:11px;
+  font-size:28px;
+  font-weight:bold;
+}
+
+.member-tag{
+  margin-top:5px;
+  font-size:11px;
+  color:var(--gold);
+  letter-spacing:1px;
+}
+
+.vs{
+  font-size:32px;
+  color:var(--gold);
+  font-weight:bold;
+  text-shadow:0 0 14px rgba(255,215,122,.55);
+  background:none;
+  box-shadow:none;
+}
+
+.action-row{
+  margin-top:22px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+button{
+  padding:13px 22px;
+  border:none;
+  border-radius:14px;
+  font-weight:bold;
+  cursor:pointer;
+  color:white;
+  background:linear-gradient(135deg,var(--red),var(--deep));
+  box-shadow:0 0 14px rgba(255,43,43,.28);
+}
+
+.result{
+  display:none;
+  max-width:850px;
+  margin:24px auto 0;
+  background:#f7f7f7;
+  color:#111;
+  padding:22px;
+  border-radius:24px;
+  text-align:left;
+}
+
+.result h2{text-align:center}
+
+.main-oshi{
+  text-align:center;
+  background:linear-gradient(135deg,#12070a,#2b0c10);
+  color:white;
+  border:1px solid var(--red);
+  border-radius:22px;
+  padding:18px;
+  margin-bottom:24px;
+  box-shadow:0 0 24px rgba(255,43,43,.35);
+}
+
+.main-oshi h1{
+  font-size:42px;
+  margin:4px 0;
+  color:var(--gold);
+  text-shadow:0 0 12px #ffd77a,0 0 24px #ff2b2b;
+}
+
+.main-oshi p{color:var(--gold);font-weight:bold}
+
+.podium{
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  gap:14px;
+  margin-top:70px;
+  margin-bottom:70px;
+}
+
+.podium-card{
+  background:
+    linear-gradient(rgba(10,10,10,.3),rgba(10,10,10,.3)),
+    url("https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?auto=format&fit=crop&w=900&q=80");
+  background-size:cover;
+  background-position:center;
+  color:white;
+  border-radius:22px;
+  padding:12px;
+  width:165px;
+  text-align:center;
+  position:relative;
+  overflow:visible;
+}
+
+  .corner-orb{
+  position:absolute;
+  top:-16px;
+  left:-16px;
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  z-index:9999;
+  pointer-events:none;
+}
+
+.orb-1{background:linear-gradient(135deg,#ffe88c,#ffb700);box-shadow:0 0 12px #ffd700,0 0 24px rgba(255,215,0,.8)}
+.orb-2{background:linear-gradient(135deg,#f6ffff,#8ddfff);box-shadow:0 0 12px #59d8ff,0 0 24px rgba(89,216,255,.8)}
+.orb-3{background:linear-gradient(135deg,#ffc086,#ff8c2b);box-shadow:0 0 12px #ff9b4a,0 0 24px rgba(255,155,74,.8)}
+
+.podium-card::before{
+  content:"";
+  position:absolute;
+  inset:-3px;
+  border-radius:24px;
+  z-index:-1;
+  background:linear-gradient(135deg,#fff,#ffd77a,#ff2b2b,#ff5bbd,#fff);
+  box-shadow:none;
+}
+
+.podium-card::after{
+  content:"";
+  position:absolute;
+  top:-18px;
+  left:50%;
+  transform:translateX(-50%);
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  font-weight:bold;
+  color:white;
+  background:linear-gradient(135deg,#ffd77a,#8b1d2c);
+  box-shadow:0 0 18px rgba(255,215,122,.8);
+}
+
+.first::after{content:"1"}
+.second::after{content:"2"}
+.third::after{content:"3"}
+
+.podium-card img{
+  width:100%;
+  height:170px;
+  object-fit:cover;
+  border-radius:15px;
+  background:#222;
+  border:1px solid rgba(255,215,122,.7);
+}
+
+.first{
+  transform:scale(1.12);
+  order:2;
+  color:#ffd77a;
+}
+
+.second{
+  order:1;
+  margin-bottom:28px;
+  color:#e8efff;
+}
+
+.third{
+  order:3;
+  margin-bottom:15px;
+  color:#ff9b4a;
+}
+  
+.rank-list{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+}
+
+.rank{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px;
+  border:1px solid #e4e4e4;
+  border-radius:14px;
+  background:white;
+}
+
+.rank img{
+  width:58px;
+  height:58px;
+  border-radius:12px;
+  object-fit:cover;
+  background:#222;
+}
+
+.rank b{color:var(--deep)}
+
+.share-box{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+
+.tip{color:#aaa;font-size:13px;margin-top:10px}
+
+@media(max-width:700px){
+  body{padding:8px}
+
+  .box{
+    padding:14px 8px;
+    border-radius:20px;
+  }
+
+  h1{font-size:26px}
+  .sub{font-size:12px}
+
+  .battle{
+    gap:6px;
+    flex-wrap:nowrap;
+    margin-top:15px;
+  }
+
+  .member-card{
+    width:42%;
+    padding:7px;
+    border-radius:15px;
+  }
+
+  .member-card img{
+    height:170px;
+    border-radius:11px;
+  }
+
+  .member-name{
+    font-size:15px;
+    margin-top:7px;
+  }
+
+  .member-tag{
+    font-size:8px;
+    letter-spacing:.3px;
+  }
+
+  .vs{
+    width:32px;
+    min-width:32px;
+    font-size:18px;
+  }
+
+  .action-row button{
+    padding:10px 15px;
+    font-size:12px;
+  }
+
+  .result{
+    padding:13px;
+    border-radius:18px;
+  }
+
+  .main-oshi h1{font-size:30px}
+
+  .podium{
+    gap:6px;
+  }
+
+ .podium-card{
+    width:31%;
+    padding:7px;
+    border-radius:17px;
+  }
+
+  .podium-card::before{
+    inset:-2px;
+    border-radius:19px;
+  }
+
+   .corner-orb{
+    width:24px;
+    height:24px;
+
+    top:-8px;
+    left:-8px;
+  }
+
+  .podium-card::after{
+    width:26px;
+    height:26px;
+    top:-13px;
+    font-size:12px;
+  }
+
+  .podium-card img{
+    height:105px;
+    border-radius:11px;
+  }
+
+  .podium-card h3{
+    font-size:11px;
+  }
+}
+
+  .first{transform:scale(1.03)}
+  .second,.third{margin-bottom:9px}
+
+  .rank-list{
+    grid-template-columns:1fr;
+  }
+}
+  /* ==================================================
+   REVISI FINAL:
+   1. Battle card kiri & kanan = mengkilap / shine
+   2. VS = efek slice
+   3. Podium Top 3 = border efek khusus hasil akhir
+   ================================================== */
+
+/* BATTLE CARD ATAS — KARTU KIRI & KANAN SAJA */
+.member-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:26px;
+  border:2px solid rgba(255,255,255,.25);
+  background:
+    radial-gradient(circle at 20% 10%,rgba(255,255,255,.16),transparent 24%),
+    linear-gradient(180deg,#151515,#070707);
+}
+
+/* efek kilap lewat khusus battle card */
+.member-card::before{
+  content:"";
+  position:absolute;
+  top:-60%;
+  left:-140%;
+  width:65%;
+  height:240%;
+  background:linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,.48),
+    transparent
+  );
+  transform:rotate(22deg);
+  animation:battleCardShine 3.2s infinite;
+  pointer-events:none;
+  z-index:3;
+}
+
+@keyframes battleCardShine{
+  0%{left:-140%}
+  55%{left:150%}
+  100%{left:150%}
+}
+
+.member-card img,
+.member-name,
+.member-tag{
+  position:relative;
+  z-index:2;
+}
+
+
+/* TEKS VS EFEK SLICE */
+.vs{
+  position:relative;
+  font-size:58px;
+  font-weight:900;
+  color:#ffd77a;
+  background:linear-gradient(135deg,#fff2b0,#ff4b2b,#ffd77a);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  text-shadow:
+    0 0 18px rgba(255,77,77,.8),
+    0 0 34px rgba(255,215,122,.55);
+}
+
+.vs::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:120px;
+  height:5px;
+  background:linear-gradient(90deg,transparent,#ff2b2b,#ffd77a,transparent);
+  transform:translate(-50%,-50%) rotate(-28deg);
+  filter:blur(.2px);
+  box-shadow:0 0 18px rgba(255,43,43,.9);
+}
+
+
+/* PODIUM TOP 3 — INI KHUSUS HASIL AKHIR */
+.podium-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 20% 10%,rgba(255,255,255,.14),transparent 25%),
+    linear-gradient(180deg,#171717,#060606);
+  color:white;
+}
+
+/* bintang kecil di dalam podium */
+.podium-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 20% 25%,#fff 0 1px,transparent 2px),
+    radial-gradient(circle at 80% 18%,#fff 0 1px,transparent 2px),
+    radial-gradient(circle at 65% 78%,#fff 0 1px,transparent 2px),
+    radial-gradient(circle at 12% 70%,#fff 0 1px,transparent 2px);
+  opacity:.55;
+  pointer-events:none;
+  z-index:1;
+}
+
+/* border fancy luar */
+.podium-card::after{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:26px;
+  pointer-events:none;
+  z-index:3;
+}
+
+.podium-card img,
+.podium-card h3{
+  position:relative;
+  z-index:2;
+}
+
+/* JUARA 1 - GOLD */
+.podium-card.first{
+  border:2px solid #ffd54f;
+  box-shadow:
+    0 0 12px #ffd54f,
+    0 0 28px rgba(255,213,79,.9),
+    0 0 52px rgba(255,213,79,.45);
+}
+
+.podium-card.first::after{
+  border:2px solid #fff0a8;
+  box-shadow:
+    inset 0 0 18px rgba(255,213,79,.75),
+    0 0 20px rgba(255,213,79,.8);
+}
+
+/* JUARA 2 - SILVER */
+.podium-card.second{
+  border:2px solid #dfe8ff;
+  box-shadow:
+    0 0 12px #dfe8ff,
+    0 0 28px rgba(223,232,255,.8),
+    0 0 52px rgba(223,232,255,.4);
+}
+
+.podium-card.second::after{
+  border:2px solid #ffffff;
+  box-shadow:
+    inset 0 0 18px rgba(223,232,255,.75),
+    0 0 20px rgba(223,232,255,.8);
+}
+
+/* JUARA 3 - BRONZE */
+.podium-card.third{
+  border:2px solid #ff9b4a;
+  box-shadow:
+    0 0 12px #ff9b4a,
+    0 0 28px rgba(255,155,74,.85),
+    0 0 52px rgba(255,155,74,.4);
+}
+
+.podium-card.third::after{
+  border:2px solid #ffc08a;
+  box-shadow:
+    inset 0 0 18px rgba(255,155,74,.75),
+    0 0 20px rgba(255,155,74,.8);
+}
+
+
+/* MOBILE BIAR TETAP RAPI */
+@media(max-width:700px){
+  .vs{
+    font-size:24px;
+  }
+
+  .vs::before{
+    width:48px;
+    height:3px;
+  }
+
+  .member-card::before{
+    animation:battleCardShine 4s infinite;
+  }
+
+  .podium-card{
+    border-radius:18px;
+  }
+
+  .podium-card::after{
+    border-radius:20px;
+  }
+}
+
+  /* base podium 1 dan 2 */
+.podium-card.first,
+.podium-card.second{
+  position:relative;
+  overflow:hidden;
+  border-radius:24px;
+  isolation:isolate;
+}
+
+/* semua isi podium tetap di atas efek */
+.podium-card.first img,
+.podium-card.first h3,
+.podium-card.second img,
+.podium-card.second h3{
+  position:relative;
+  z-index:5;
+}
+
+/* 🥇 PODIUM 1 — INFINITY GOLD ROYAL */
+.podium-card.first{
+  border:2px solid #ffd700;
+  transform:scale(1.15);
+  background:
+    radial-gradient(circle at top,rgba(255,215,0,.28),transparent 36%),
+    radial-gradient(circle at bottom,rgba(255,106,0,.18),transparent 40%),
+    linear-gradient(180deg,#2a1900,#070707);
+
+  box-shadow:
+    0 0 14px #ffd700,
+    0 0 34px rgba(255,215,0,.95),
+    0 0 70px rgba(255,215,0,.55);
+}
+
+/* border dalam podium 1 */
+.podium-card.first::after{
+  content:"";
+  position:absolute;
+  inset:5px;
+  border-radius:19px;
+  border:2px solid rgba(255,246,179,.9);
+  box-shadow:
+    inset 0 0 24px rgba(255,215,0,.95),
+    0 0 22px rgba(255,215,0,.75);
+  pointer-events:none;
+  z-index:4;
+}
+
+/* kilau lewat podium 1 */
+.podium-card.first .gold-shine{
+  content:"";
+  position:absolute;
+  top:-60%;
+  left:-130%;
+  width:65%;
+  height:240%;
+  background:linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,215,0,.75),
+    transparent
+  );
+  transform:rotate(22deg);
+  animation:goldPodiumShine 3.2s infinite;
+  pointer-events:none;
+  z-index:3;
+}
+
+@keyframes goldPodiumShine{
+  0%{left:-130%}
+  55%{left:150%}
+  100%{left:150%}
+}
+
+/* mahkota podium 1 */
+.podium-card.first h3::before{
+  content:"👑";
+  display:block;
+  font-size:28px;
+  line-height:1;
+  margin-bottom:3px;
+  filter:
+    drop-shadow(0 0 8px #ffd700)
+    drop-shadow(0 0 18px #ffd700);
+}
+
+
+/* 🥈 PODIUM 2 — SSR ICE BLUE */
+.podium-card.second{
+  border:2px solid #59d8ff;
+  background:
+    radial-gradient(circle at top,rgba(89,216,255,.26),transparent 36%),
+    radial-gradient(circle at bottom,rgba(130,180,255,.16),transparent 40%),
+    linear-gradient(180deg,#071827,#050607);
+
+  box-shadow:
+    0 0 14px #59d8ff,
+    0 0 32px rgba(89,216,255,.9),
+    0 0 62px rgba(89,216,255,.48);
+}
+
+/* border dalam podium 2 */
+.podium-card.second::after{
+  content:"";
+  position:absolute;
+  inset:5px;
+  border-radius:19px;
+  border:2px solid rgba(186,240,255,.95);
+  box-shadow:
+    inset 0 0 22px rgba(89,216,255,.9),
+    0 0 22px rgba(89,216,255,.8);
+  pointer-events:none;
+  z-index:4;
+}
+
+/* efek kristal biru podium 2 */
+.podium-card.second .ice-effect{
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(135deg,transparent 35%,rgba(186,240,255,.5),transparent 48%),
+    radial-gradient(circle at 20% 20%,#fff 0 1px,transparent 2px),
+    radial-gradient(circle at 80% 30%,#baf0ff 0 1px,transparent 2px),
+    radial-gradient(circle at 65% 75%,#fff 0 1px,transparent 2px);
+  opacity:.8;
+  pointer-events:none;
+  z-index:3;
+}
+
+
+/* MOBILE */
+@media(max-width:700px){
+  .podium-card.first{
+    transform:scale(1.06);
+  }
+
+  .podium-card.first::after,
+  .podium-card.second::after{
+    inset:3px;
+    border-radius:15px;
+  }
+
+  .podium-card.first h3::before{
+    font-size:20px;
+  }
+}
+
+  .corner-orb{
+  position:absolute;
+  top:-6px;
+  left:-6px;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  z-index:50;
+  pointer-events:none;
+}
+
+.orb-1{
+  background:linear-gradient(135deg,#ffe88c,#ffb700);
+  box-shadow:0 0 12px #ffd700,0 0 24px rgba(255,215,0,.8);
+}
+
+.orb-2{
+  background:linear-gradient(135deg,#f6ffff,#8ddfff);
+  box-shadow:0 0 12px #59d8ff,0 0 24px rgba(89,216,255,.8);
+}
+
+.orb-3{
+  background:linear-gradient(135deg,#ffc086,#ff8c2b);
+  box-shadow:0 0 12px #ff9b4a,0 0 24px rgba(255,155,74,.8);
+}
+
+  /* FIX: sembunyikan sisa orb kiri atas lama */
+.podium-card.first::before,
+.podium-card.second::before,
+.podium-card.third::before{
+  background:none !important;
+  box-shadow:none !important;
+}
+
+/* ORB lama jangan kelihatan */
+.podium-card.first::before,
+.podium-card.second::before,
+.podium-card.third::before{
+  opacity:0 !important;
+}
+
+/* KILAU PODIUM 1 WARNA GOLD */
+.podium-card.first .gold-shine{
+  position:absolute;
+  top:-60%;
+  left:-130%;
+  width:65%;
+  height:240%;
+  background:linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,215,0,.75),
+    rgba(255,255,190,.9),
+    rgba(255,215,0,.75),
+    transparent
+  );
+  transform:rotate(22deg);
+  animation:goldPodiumShine 3.2s infinite;
+  pointer-events:none;
+  z-index:4;
+}
+
+@keyframes goldPodiumShine{
+  0%{left:-130%}
+  55%{left:150%}
+  100%{left:150%}
+}
+
+  /*
+.podium-card::before{
+ ...
+}
+*/
+
+  /*
+.podium-card.first::after,
+.podium-card.second::after{
+ ...
+}
+*/
+
+  /* FIX: HAPUS SISA LAYER PUTIH DI POJOK PODIUM */
+.podium-card::before,
+.podium-card::after,
+.podium-card.first::before,
+.podium-card.first::after,
+.podium-card.second::before,
+.podium-card.second::after,
+.podium-card.third::before,
+.podium-card.third::after{
+  content:none !important;
+  display:none !important;
+}
+
+  /* FIX FINAL ORB DESKTOP + MOBILE */
+.podium-card .corner-orb{
+  position:absolute !important;
+  top:-20px !important;
+  left:-20px !important;
+  width:64px !important;
+  height:64px !important;
+  border-radius:50% !important;
+  z-index:99999 !important;
+  pointer-events:none !important;
+}
+
+@media(max-width:700px){
+  .podium-card .corner-orb{
+    top:-7px !important;
+    left:-7px !important;
+    width:26px !important;
+    height:26px !important;
+  }
+}
+
+  /* FIX PROGRESS BAR ANIME BATTLE */
+.progress-wrap{
+  position:relative;
+  overflow:hidden;
+  box-shadow:
+    0 0 14px rgba(255,43,43,.55),
+    0 0 28px rgba(255,215,0,.35);
+}
+
+.progress-bar{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(90deg,#ff2b2b,#ff8a00,#ffd700,#ff8a00,#ff2b2b) !important;
+  background-size:300% 100% !important;
+  animation:battleGradient 2s linear infinite;
+  box-shadow:
+    0 0 10px #ff2b2b,
+    0 0 20px #ff8a00,
+    0 0 35px #ffd700;
+}
+
+.progress-bar::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-50%;
+  width:40%;
+  height:100%;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.9),transparent);
+  animation:progressSlash 1.4s linear infinite;
+}
+
+@keyframes battleGradient{
+  0%{background-position:0% 50%}
+  100%{background-position:300% 50%}
+}
+
+@keyframes progressSlash{
+  from{left:-50%}
+  to{left:150%}
+}
+  
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+  <div class="box">
+    <h1>🎭 Oshi Sorter</h1>
+    <p class="sub">Pilih member yang lebih kamu suka. Klik untuk memilih. Bisa skip atau ulangi dari awal.</p>
+
+    <div id="game">
+      <div class="progress-area">
+        <div class="progress-text">
+          <span id="progress">Battle 1 / 180</span>
+          <span id="percent">0%</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+
+      <div class="battle">
+        <div class="member-card" onclick="choose('left')">
+          <img id="leftImg" src="">
+          <div class="member-name" id="leftName"></div>
+          <div class="member-tag">PILIH OSHI INI</div>
+        </div>
+
+        <div class="vs">VS</div>
+
+        <div class="member-card" onclick="choose('right')">
+          <img id="rightImg" src="">
+          <div class="member-name" id="rightName"></div>
+          <div class="member-tag">PILIH OSHI INI</div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button onclick="skip()">⏭️ Skip</button>
+        <button onclick="location.reload()">🔄 Ulangi</button>
+      </div>
+
+      <p class="tip">Hasil akhir menampilkan rangking 1-62</p>
+    </div>
+
+    <div id="result" class="result"></div>
+  </div>
+</div>
+
+<script>
+const members = [
+{name:"Freya",img:"images/freya.jpg"},
+{name:"Christy",img:"images/christy.jpg"},
+{name:"Gracie",img:"images/gracie.jpg"},
+{name:"Feni",img:"images/feni.jpg"},
+{name:"Gita",img:"images/gita.jpg"},
+{name:"Eli",img:"images/eli.jpg"},
+{name:"Olla",img:"images/olla.jpg"},
+{name:"Muthe",img:"images/muthe.jpg"},
+{name:"Lulu",img:"images/lulu.jpg"},
+{name:"Fiony",img:"images/fiony.jpg"},
+{name:"Marsha",img:"images/marsha.jpg"},
+{name:"Kathrina",img:"images/kathrina.jpg"},
+{name:"Jessi",img:"images/jessi.jpg"},
+{name:"Lyn",img:"images/lyn.jpg"},
+{name:"Greesel",img:"images/greesel.jpg"},
+{name:"Ella",img:"images/ella.jpg"},
+{name:"Alya",img:"images/alya.jpg"},
+{name:"Anindya",img:"images/anindya.jpg"},
+{name:"Cathy",img:"images/cathy.jpg"},
+{name:"Lana",img:"images/lana.jpg"},
+{name:"Oniel",img:"images/oniel.jpg"},
+{name:"Elin",img:"images/elin.jpg"},
+{name:"Gendis",img:"images/gendis.jpg"},
+{name:"Indah",img:"images/indah.jpg"},
+{name:"Lia",img:"images/lia.jpg"},
+{name:"Nala",img:"images/nala.jpg"},
+{name:"Nayla",img:"images/nayla.jpg"},
+{name:"Raisha",img:"images/raisha.jpg"},
+{name:"Ribka",img:"images/ribka.jpg"},
+{name:"Trisha",img:"images/trisha.jpg"},
+{name:"Kimmy",img:"images/kimmy.jpg"},
+{name:"Michie",img:"images/michie.jpg"},
+{name:"Danella",img:"images/danella.jpg"},
+{name:"Daisy",img:"images/daisy.jpg"},
+{name:"Oline",img:"images/oline.jpg"},
+{name:"Delynn",img:"images/delynn.jpg"},
+{name:"Lily",img:"images/lily.jpg"},
+{name:"Aralie",img:"images/aralie.jpg"},
+{name:"Nachia",img:"images/nachia.jpg"},
+{name:"Levi",img:"images/levi.jpg"},
+{name:"Cynthia",img:"images/cynthia.jpg"},
+{name:"Fritzy",img:"images/fritzy.jpg"},
+{name:"Erine",img:"images/erine.jpg"},
+{name:"Jemima",img:"images/jemima.jpg"},
+{name:"Ekin",img:"images/ekin.jpg"},
+{name:"Intan",img:"images/intan.jpg"},
+{name:"Mikaela",img:"images/mikaela.jpg"},
+{name:"Rilly",img:"images/rilly.jpg"},
+{name:"Virgi",img:"images/virgi.jpg"},
+{name:"Auwia",img:"images/auwia.jpg"},
+{name:"Giaa",img:"images/giaa.jpg"},
+{name:"Maira",img:"images/maira.jpg"},
+{name:"Fera",img:"images/fera.jpg"},
+{name:"Carissa",img:"images/carissa.jpg"},
+{name:"Bella",img:"images/bella.jpg"},
+{name:"Fahira",img:"images/fahira.jpg"},
+{name:"Rara",img:"images/rara.jpg"},
+{name:"Heidi",img:"images/heidi.jpg"},
+{name:"Maxine",img:"images/maxine.jpg"},
+{name:"Jazzy",img:"images/jazzy.jpg"},
+{name:"Ralyne",img:"images/ralyne.jpg"},
+{name:"Sona",img:"images/sona.jpg"}
+];
+
+let scores = {};
+let pairs = [];
+let current = 0;
+let totalBattle = 200;
+
+members.forEach(m => scores[m.name] = 0);
+
+for(let i=0;i<members.length;i++){
+  for(let j=i+1;j<members.length;j++){
+    pairs.push([members[i],members[j]]);
+  }
+}
+
+pairs = pairs.sort(() => Math.random() - 0.5).slice(0,totalBattle);
+
+function fallback(img,name){
+  img.onerror = null;
+  img.src = "https://via.placeholder.com/400x500/111111/ffffff?text=" + encodeURIComponent(name);
+}
+
+function updateProgress(){
+  let percent = Math.round((current / pairs.length) * 100);
+  document.getElementById("progressBar").style.width = percent + "%";
+  document.getElementById("progress").innerText = "Battle " + Math.min(current + 1,pairs.length) + " / " + pairs.length;
+  document.getElementById("percent").innerText = percent + "%";
+}
+
+function showPair(){
+  if(current >= pairs.length){
+    showResult();
+    return;
+  }
+
+  let left = pairs[current][0];
+  let right = pairs[current][1];
+
+  document.getElementById("leftName").innerText = left.name;
+  document.getElementById("leftImg").src = left.img;
+  document.getElementById("leftImg").onerror = function(){fallback(this,left.name)};
+
+  document.getElementById("rightName").innerText = right.name;
+  document.getElementById("rightImg").src = right.img;
+  document.getElementById("rightImg").onerror = function(){fallback(this,right.name)};
+
+  updateProgress();
+}
+
+function choose(side){
+  if(current >= pairs.length){
+    showResult();
+    return;
+  }
+
+  let pair = pairs[current];
+
+  if(side === "left"){
+    scores[pair[0].name]++;
+  }else{
+    scores[pair[1].name]++;
+  }
+
+  current++;
+
+  if(current >= pairs.length){
+    showResult();
+  }else{
+    showPair();
+  }
+}
+
+function skip(){
+  current++;
+
+  if(current >= pairs.length){
+    showResult();
+  }else{
+    showPair();
+  }
+}
+
+function getTier(score){
+  if(score>=20)return "TITLE: OSHI KANDUNG 😈";
+  if(score>=15)return "TITLE: OSHI SATU SATUNYA 🥶";
+  if(score>=10)return "TITLE: OSHI KESAYANGAN 🥰";
+  if(score>=5)return "TITLE: OSHI BARU 🫣";
+  return "TITLE: OSHI SALAH SATUNYA 😹";
+}
+
+function showResult(){
+  document.getElementById("game").style.display = "none";
+
+  let sorted = [...members].sort((a,b)=>{
+    return scores[b.name] - scores[a.name];
+  });
+
+  let top1 = sorted[0];
+  let top2 = sorted[1];
+  let top3 = sorted[2];
+
+  let shareText = "🏆 Hasil Oshi Sorter Theater48Fight\n\n";
+  shareText += "Oshi Utama: " + top1.name + "\n\n";
+  shareText += "Top 10:\n";
+
+  sorted.slice(0,10).forEach((m,i)=>{
+    shareText += (i+1) + ". " + m.name + "\n";
+  });
+
+  window.__shareText = shareText;
+
+  let html = "";
+
+  html += '<div class="main-oshi">';
+  html += '<h2>🏆 Oshi Utama Kamu</h2>';
+  html += '<h1>' + top1.name + '</h1>';
+  html += '<p>' + getTier(scores[top1.name]) + '</p>';
+  html += '<small>Total Battle: ' + pairs.length + ' • Member: ' + members.length + '</small>';
+  html += '</div>';
+
+  html += '<h2>🥇 Podium Top 3</h2>';
+  html += '<div class="podium">';
+
+  html += '<div class="podium-card second">';
+  html += '<img src="' + top2.img + '" onerror="fallback(this,\'' + top2.name + '\')">';
+  html += '<span class="corner-orb orb-2"></span>';
+  html += '<span class="ice-effect"></span>';
+  html += '<h3>🥈 ' + top2.name + '</h3>';
+  html += '</div>';
+
+  html += '<div class="podium-card first">';
+  html += '<img src="' + top1.img + '" onerror="fallback(this,\'' + top1.name + '\')">';
+  html += '<span class="corner-orb orb-1"></span>';
+  html += '<span class="gold-shine"></span>';
+  html += '<h3>🥇 ' + top1.name + '</h3>';
+  html += '</div>';
+
+  html += '<div class="podium-card third">';
+  html += '<img src="' + top3.img + '" onerror="fallback(this,\'' + top3.name + '\')">';
+  html += '<span class="corner-orb orb-3"></span>';
+  html += '<h3>🥉 ' + top3.name + '</h3>';
+  html += '</div>';
+
+  html += '</div>';
+
+  html += '<h2>📋 Rangking Lengkap</h2>';
+  html += '<div class="rank-list">';
+
+  sorted.forEach((member,index)=>{
+    html += '<div class="rank">';
+    html += '<img src="' + member.img + '" onerror="fallback(this,\'' + member.name + '\')">';
+    html += '<div><b>#' + (index+1) + '</b> ' + member.name + '<br><small>' + scores[member.name] + ' poin</small></div>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+
+  html += '<div class="share-box">';
+  html += '<button onclick="shareNative()">📤 Share</button>';
+  html += '<button onclick="shareWhatsApp()">🟢 WhatsApp</button>';
+  html += '<button onclick="shareX()">⚫ X</button>';
+  html += '<button onclick="copyResult()">📋 Copy</button>';
+  html += '<button onclick="location.reload()">🔄 Ulangi</button>';
+  html += '</div>';
+
+  let result = document.getElementById("result");
+  result.innerHTML = html;
+  result.style.display = "block";
+
+  window.scrollTo({top:result.offsetTop - 10,behavior:"smooth"});
+}
+
+function shareNative(){
+  if(navigator.share){
+    navigator.share({
+      title:"Hasil Oshi Sorter Theater48Fight",
+      text:window.__shareText,
+      url:location.href
+    });
+  }else{
+    copyResult();
+  }
+}
+
+function shareWhatsApp(){
+  window.open("https://wa.me/?text=" + encodeURIComponent(window.__shareText + "\n" + location.href),"_blank");
+}
+
+function shareX(){
+  window.open("https://twitter.com/intent/tweet?text=" + encodeURIComponent(window.__shareText) + "&url=" + encodeURIComponent(location.href),"_blank");
+}
+
+function copyResult(){
+  navigator.clipboard.writeText(window.__shareText || "Hasil Oshi Sorter Theater48Fight")
+  .then(()=>alert("Hasil sudah dicopy!"))
+  .catch(()=>alert(window.__shareText));
+}
+
+document.addEventListener("keydown",function(e){
+  if(document.getElementById("game").style.display === "none")return;
+
+  if(e.key === "ArrowLeft")choose("left");
+  if(e.key === "ArrowRight")choose("right");
+  if(e.key.toLowerCase() === "s")skip();
+});
+
+showPair();
+</script>
+
+</body>
+</html>
