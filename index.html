@@ -1168,14 +1168,16 @@ button{
 
 .history-mini img{
   width:100%;
-  height:90px;
+  height:130px;
   object-fit:cover;
+  object-position:top center;
   border-radius:12px;
+  background:#eee;
 }
-
+  
 @media(max-width:700px){
   .history-top3{gap:6px}
-  .history-mini img{height:65px}
+  .history-mini img{height:95px}
 }
 
 .music-btn{
@@ -1191,6 +1193,43 @@ button{
     height:62px;
   }
 }
+
+/* FIX DESKTOP BATTLE BIAR MUAT */
+@media(min-width:701px){
+  .wrap{
+    max-width:1100px;
+  }
+
+  .box{
+    padding:18px 22px;
+  }
+
+  h1{
+    font-size:34px;
+  }
+
+  .battle{
+    gap:18px;
+    margin-top:18px;
+  }
+
+  .member-card{
+    width:250px;
+    padding:12px;
+  }
+
+  .member-card img{
+    height:285px;
+  }
+
+  .member-name{
+    font-size:25px;
+  }
+
+  .vs{
+    font-size:50px;
+  }
+}
   
 </style>
 </head>
@@ -1200,22 +1239,17 @@ button{
 <div class="wrap">
   <div class="box">
     <h1>🎭 Oshi Sorter</h1>
-    <p class="sub">Pilih member yang lebih kamu suka. Klik untuk memilih. Bisa skip atau ulangi dari awal.</p>
+    <p class="sub">Pilih member yang lebih kamu suka sampai ranking oshi terbentuk. Klik untuk memilih. Bisa skip atau ulangi dari awal.</p>
     
     <button class="music-btn" id="musicBtn" onclick="toggleBGM()">🎵 BGM ON</button>
     <button class="music-btn" onclick="openHistoryPage()">📜 Riwayat</button>
-
-<div id="historyPanel" class="history-panel">
-  <h2>📜 Riwayat Oshi Sorter</h2>
-  <div id="historyList" class="history-list"></div>
-</div>
 
 <audio id="bgm"></audio>
 
     <div id="game">
       <div class="progress-area">
         <div class="progress-text">
-          <span id="progress">Battle 1 / 180</span>
+          <span id="progress">Battle 1 / 450</span>
           <span id="percent">0%</span>
         </div>
         <div class="progress-wrap">
@@ -1244,7 +1278,7 @@ button{
         <button onclick="location.reload()">🔄 Ulangi</button>
       </div>
 
-      <p class="tip">Hasil akhir menampilkan rangking 1-62</p>
+      <p class="tip">Hasil akhir menampilkan ranking 1-62</p>
     </div>
 
     <div id="result" class="result"></div>
@@ -1464,11 +1498,11 @@ function skip(){
 }
 
 function getTier(score){
-  if(score>=20)return "GELAR: OSHI KANDUNG 😈";
-  if(score>=15)return "GELAR: OSHI SATU-SATUNYA 🥶";
-  if(score>=10)return "GELAR: OSHI KESAYANGAN 🥰";
-  if(score>=5)return "GELAR: OSHI BARU 🫣";
-  return "GELAR: OSHI KARBIT 😹";
+  if(score>=15)return "GELAR: OSHI KANDUNG 😈";
+  if(score>=10)return "GELAR: OSHI SATU-SATUNYA 🥶";
+  if(score>=6)return "GELAR: OSHI KESAYANGAN 🥰";
+  if(score>=3)return "GELAR: OSHI BARU 🫣";
+  if(score>=0)return "GELAR: OSHI KARBIT 😹";
 }
 
 function victoryAnimation(){
@@ -1532,14 +1566,14 @@ function showResult(){
   html += '<h2>📌 Panduan Gelar & Poin</h2>';
   html += '<div class="tier-grid">';
 
-  html += '<div class="tier-item"><b>20+ poin</b><br>GELAR: OSHI KANDUNG 😈</div>';
-  html += '<div class="tier-item"><b>15–19 poin</b><br>GELAR: OSHI SATU-SATUNYA 🥶</div>';
-  html += '<div class="tier-item"><b>10–14 poin</b><br>GELAR: OSHI KESAYANGAN 🥰</div>';
-  html += '<div class="tier-item"><b>5–9 poin</b><br>GELAR: OSHI BARU 🫣</div>';
-  html += '<div class="tier-item"><b>0–4 poin</b><br>GELAR: OSHI KARBIT 😹</div>';
+  html += '<div class="tier-item"><b>15 poin</b><br>GELAR: OSHI KANDUNG 😈</div>';
+  html += '<div class="tier-item"><b>10–14 poin</b><br>GELAR: OSHI SATU-SATUNYA 🥶</div>';
+  html += '<div class="tier-item"><b>6–9 poin</b><br>GELAR: OSHI KESAYANGAN 🥰</div>';
+  html += '<div class="tier-item"><b>3–5 poin</b><br>GELAR: OSHI BARU 🫣</div>';
+  html += '<div class="tier-item"><b>0–2 poin</b><br>GELAR: OSHI KARBIT 😹</div>';
 
   html += '</div>';
-  html += '<p class="tier-note">Catatan: semakin banyak total battle, hasil rangking dan gelar makin akurat.</p>';
+  html += '<p class="tier-note">Catatan: semakin banyak dipilih, hasil ranking dan gelar makin akurat.</p>';
   html += '</div>';
 
   html += '<h2>🥇 Podium Top 3</h2>';
@@ -1567,7 +1601,7 @@ function showResult(){
 
   html += '</div>';
 
-  html += '<h2>📋 Rangking Lengkap</h2>';
+  html += '<h2>📋 Ranking Lengkap</h2>';
   html += '<div class="rank-list">';
 
  sorted.forEach((member,index)=>{
@@ -1794,16 +1828,48 @@ function showHistoryDetail(id){
 
   const page = document.getElementById("historyPage");
   page.style.display = "block";
+  document.getElementById("game").style.display = "none";
+  document.getElementById("result").style.display = "none";
+
+  const t1 = item.top3[0];
+  const t2 = item.top3[1];
+  const t3 = item.top3[2];
 
   let html = "";
 
   html += '<div class="main-oshi">';
   html += '<h2>📜 Full Ranking Riwayat</h2>';
-  html += '<h1>' + item.top3[0].name + '</h1>';
-  html += '<p>Hasil lama • ' + item.date + '</p>';
-  html += '<small>Total Battle: ' + item.totalBattle + '</small>';
+  html += '<h1>' + t1.name + '</h1>';
+  html += '<p>' + getTier(t1.score) + '</p>';
+  html += '<small>Hasil lama • ' + item.date + '<br>Total Battle: ' + item.totalBattle + '</small>';
   html += '</div>';
 
+  html += '<h2>🥇 Podium Top 3</h2>';
+  html += '<div class="podium">';
+
+  html += '<div class="podium-card second">';
+  html += '<img src="' + t2.img + '" onerror="fallback(this,\'' + t2.name + '\')">';
+  html += '<span class="corner-orb orb-2"></span>';
+  html += '<span class="ice-effect"></span>';
+  html += '<h3>🥈 ' + t2.name + '</h3>';
+  html += '</div>';
+
+  html += '<div class="podium-card first">';
+  html += '<img src="' + t1.img + '" onerror="fallback(this,\'' + t1.name + '\')">';
+  html += '<span class="corner-orb orb-1"></span>';
+  html += '<span class="gold-shine"></span>';
+  html += '<h3>🥇 ' + t1.name + '</h3>';
+  html += '</div>';
+
+  html += '<div class="podium-card third">';
+  html += '<img src="' + t3.img + '" onerror="fallback(this,\'' + t3.name + '\')">';
+  html += '<span class="corner-orb orb-3"></span>';
+  html += '<h3>🥉 ' + t3.name + '</h3>';
+  html += '</div>';
+
+  html += '</div>';
+
+  html += '<h2>📋 Full Ranking Riwayat</h2>';
   html += '<div class="rank-list">';
 
   item.full.forEach(member=>{
