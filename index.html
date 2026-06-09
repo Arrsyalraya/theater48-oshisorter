@@ -1103,68 +1103,79 @@ button{
   to{left:150%}
 }
 
-.history-panel{
-  margin:18px auto 20px;
-  padding:16px;
-  border-radius:20px;
-  background:linear-gradient(135deg,#110608,#210b10);
-  border:1px solid rgba(255,215,122,.45);
-  box-shadow:0 0 22px rgba(255,43,43,.2);
-  color:white;
+.history-page{
   display:none;
+  max-width:900px;
+  margin:24px auto 0;
+  background:#f7f7f7;
+  color:#111;
+  padding:22px;
+  border-radius:24px;
+  text-align:left;
 }
 
-.history-panel h2{
-  margin:0 0 12px;
-  color:#ffd77a;
+.medal-board{
+  margin-bottom:24px;
+  padding:18px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#14070a,#250b12);
+  color:white;
 }
 
-.history-list{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
+.medal-board h2,
+.history-page h2{
+  text-align:center;
+}
+
+.medal-row{
+  display:flex;
+  align-items:center;
   gap:12px;
+  background:rgba(255,255,255,.08);
+  padding:10px;
+  border-radius:14px;
+  margin-bottom:8px;
+}
+
+.medal-row img{
+  width:52px;
+  height:52px;
+  object-fit:cover;
+  border-radius:12px;
 }
 
 .history-card{
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:16px;
-  padding:12px;
+  background:white;
+  border:1px solid #ddd;
+  border-radius:18px;
+  padding:14px;
+  margin-bottom:14px;
   cursor:pointer;
-  transition:.2s;
-}
-
-.history-card:hover{
-  transform:translateY(-3px);
-  box-shadow:0 0 18px rgba(255,215,122,.25);
 }
 
 .history-top3{
   display:flex;
+  gap:10px;
   justify-content:center;
-  gap:8px;
-  margin-top:8px;
+  margin-top:10px;
 }
 
 .history-mini{
   width:30%;
   text-align:center;
-  font-size:11px;
+  font-size:12px;
 }
 
 .history-mini img{
   width:100%;
-  height:72px;
+  height:90px;
   object-fit:cover;
-  border-radius:10px;
-  background:#222;
+  border-radius:12px;
 }
 
-.history-medals{
-  margin-top:10px;
-  font-size:12px;
-  color:#ddd;
-  line-height:1.5;
+@media(max-width:700px){
+  .history-top3{gap:6px}
+  .history-mini img{height:65px}
 }
 
 .music-btn{
@@ -1192,6 +1203,7 @@ button{
     <p class="sub">Pilih member yang lebih kamu suka. Klik untuk memilih. Bisa skip atau ulangi dari awal.</p>
     
     <button class="music-btn" id="musicBtn" onclick="toggleBGM()">🎵 BGM ON</button>
+    <button class="music-btn" onclick="openHistoryPage()">📜 Riwayat</button>
 
 <div id="historyPanel" class="history-panel">
   <h2>📜 Riwayat Oshi Sorter</h2>
@@ -1236,6 +1248,7 @@ button{
     </div>
 
     <div id="result" class="result"></div>
+    <div id="historyPage" class="history-page"></div>
   </div>
 </div>
 
@@ -1558,15 +1571,11 @@ function showResult(){
   html += '<div class="rank-list">';
 
  sorted.forEach((member,index)=>{
-  let battleCount = stats[member.name].battle;
-  let winCount = stats[member.name].win;
-  let wr = battleCount ? ((winCount / battleCount) * 100).toFixed(1) : "0.0";
-
   html += '<div class="rank">';
   html += '<img loading="lazy" src="' + member.img + '" onerror="fallback(this,\'' + member.name + '\')">';
   html += '<div>';
   html += '<b>#' + (index+1) + '</b> ' + member.name + '<br>';
-  html += '<small>' + scores[member.name] + ' poin • WR ' + wr + '% • ' + winCount + '/' + battleCount + ' battle</small>';
+  html += '<small>' + scores[member.name] + ' poin</small>';
   html += '</div>';
   html += '</div>';
 });
@@ -1697,20 +1706,58 @@ function getMedalSummary(){
   return medals;
 }
 
-function renderHistory(){
+function openHistoryPage(){
+  document.getElementById("game").style.display = "none";
+  document.getElementById("result").style.display = "none";
+  document.getElementById("historyPanel").style.display = "none";
+
+  const page = document.getElementById("historyPage");
+  page.style.display = "block";
+
   const history = getSorterHistory();
-  const panel = document.getElementById("historyPanel");
-  const list = document.getElementById("historyList");
 
   if(!history.length){
-    panel.style.display = "none";
+    page.innerHTML = `
+      <h2>📜 Riwayat Oshi Sorter</h2>
+      <p style="text-align:center">Belum ada riwayat. Selesaikan sorter dulu.</p>
+      <div class="share-box"><button onclick="location.reload()">⬅️ Kembali</button></div>
+    `;
     return;
   }
 
   const medals = getMedalSummary();
+  const medalArray = Object.keys(medals).map(name=>{
+    const member = members.find(m=>m.name === name);
+    return {
+      name,
+      img: member ? member.img : "",
+      gold: medals[name].gold,
+      silver: medals[name].silver,
+      bronze: medals[name].bronze
+    };
+  }).sort((a,b)=>{
+    return b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze;
+  });
 
-  panel.style.display = "block";
-  list.innerHTML = "";
+  let html = "";
+
+  html += '<h2>📜 Riwayat Oshi Sorter</h2>';
+
+  html += '<div class="medal-board">';
+  html += '<h2>🏅 Perolehan Medali Member</h2>';
+
+  medalArray.forEach((m,index)=>{
+    html += '<div class="medal-row">';
+    html += '<b>#' + (index+1) + '</b>';
+    html += '<img src="' + m.img + '" onerror="fallback(this,\'' + m.name + '\')">';
+    html += '<div><b>' + m.name + '</b><br>';
+    html += '<small>🥇 ' + m.gold + ' • 🥈 ' + m.silver + ' • 🥉 ' + m.bronze + '</small></div>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+
+  html += '<h2>🕘 Daftar Riwayat</h2>';
 
   history.forEach(item=>{
     let top3Html = item.top3.map(t=>{
@@ -1723,62 +1770,58 @@ function renderHistory(){
       `;
     }).join("");
 
-    let medalText = item.top3.map(t=>{
-      const m = medals[t.name];
-      return `${t.name}: 🥇${m.gold} 🥈${m.silver} 🥉${m.bronze}`;
-    }).join("<br>");
-
-    const card = document.createElement("div");
-    card.className = "history-card";
-    card.innerHTML = `
-      <b>Sorter ${item.date}</b><br>
-      <small>${item.totalBattle} battle</small>
-      <div class="history-top3">${top3Html}</div>
-      <div class="history-medals">${medalText}</div>
-      <small>Klik untuk lihat full ranking</small>
-    `;
-
-    card.onclick = ()=>showHistoryDetail(item.id);
-    list.appendChild(card);
+    html += '<div class="history-card" onclick="showHistoryDetail(' + item.id + ')">';
+    html += '<b>Sorter ' + item.date + '</b><br>';
+    html += '<small>' + item.totalBattle + ' battle</small>';
+    html += '<div class="history-top3">' + top3Html + '</div>';
+    html += '<p style="text-align:center;margin-bottom:0"><b>Klik untuk lihat full ranking</b></p>';
+    html += '</div>';
   });
+
+  html += '<div class="share-box"><button onclick="location.reload()">⬅️ Kembali ke Battle</button></div>';
+
+  page.innerHTML = html;
+  window.scrollTo({top:page.offsetTop - 10,behavior:"smooth"});
+}
+
+function renderHistory(){
+  // dikosongkan supaya history tidak muncul di halaman battle
 }
 
 function showHistoryDetail(id){
   const item = getSorterHistory().find(h=>h.id === id);
   if(!item) return;
 
-  document.getElementById("game").style.display = "none";
+  const page = document.getElementById("historyPage");
+  page.style.display = "block";
 
   let html = "";
 
   html += '<div class="main-oshi">';
-  html += '<h2>📜 Riwayat Sorter</h2>';
+  html += '<h2>📜 Full Ranking Riwayat</h2>';
   html += '<h1>' + item.top3[0].name + '</h1>';
   html += '<p>Hasil lama • ' + item.date + '</p>';
   html += '<small>Total Battle: ' + item.totalBattle + '</small>';
   html += '</div>';
 
-  html += '<h2>📋 Full Ranking Riwayat</h2>';
   html += '<div class="rank-list">';
 
   item.full.forEach(member=>{
-    let wr = member.battle ? ((member.win / member.battle) * 100).toFixed(1) : "0.0";
-
     html += '<div class="rank">';
     html += '<img loading="lazy" src="' + member.img + '" onerror="fallback(this,\'' + member.name + '\')">';
     html += '<div><b>#' + member.rank + '</b> ' + member.name + '<br>';
-    html += '<small>' + member.score + ' poin • WR ' + wr + '% • ' + member.win + '/' + member.battle + ' battle</small></div>';
+    html += '<small>' + member.score + ' poin</small></div>';
     html += '</div>';
   });
 
   html += '</div>';
-  html += '<div class="share-box"><button onclick="location.reload()">⬅️ Kembali</button></div>';
+  html += '<div class="share-box">';
+  html += '<button onclick="openHistoryPage()">⬅️ Kembali ke Riwayat</button>';
+  html += '<button onclick="location.reload()">🎭 Battle Baru</button>';
+  html += '</div>';
 
-  const result = document.getElementById("result");
-  result.innerHTML = html;
-  result.style.display = "block";
-
-  window.scrollTo({top:result.offsetTop - 10,behavior:"smooth"});
+  page.innerHTML = html;
+  window.scrollTo({top:page.offsetTop - 10,behavior:"smooth"});
 }
   
   const bgmPlaylist = [
