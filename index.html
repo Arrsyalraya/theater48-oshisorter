@@ -1199,8 +1199,6 @@ button{
 </div>
 
 <audio id="bgm"></audio>
-  <source src="bgm.mp3" type="audio/mpeg">
-</audio>
 
     <div id="game">
       <div class="progress-area">
@@ -1431,23 +1429,6 @@ function choose(side){
   }else{
     scores[right.name]++;
     stats[right.name].win++;
-  }
-
-  current++;
-
-  if(current >= pairs.length){
-    showResult();
-  }else{
-    showPair();
-  }
-}
-
-  let pair = pairs[current];
-
-  if(side === "left"){
-    scores[pair[0].name]++;
-  }else{
-    scores[pair[1].name]++;
   }
 
   current++;
